@@ -1,0 +1,43 @@
+# SPDXLicense-Identifier: MIT-0
+---
+
+- name: Install HashiCorp Vault
+  ansible.builtin.apt:
+    name: vault
+
+- name: Create directory for Vault Data storage
+  ansible.builtin.file:
+    path: /opt/vault/vault-data
+    state: directory
+    mode: "0644"
+
+# This will need to be turned into a template or something eventually...
+- name: Configure first server
+  ansible.builtin.template:
+    src: vault-server.hcl.j2
+    dest: /opt/vault/vault-server.hcl
+    mode: "0640"
+
+- name: Generate OpenSSL Private Key
+  community.crypto.openssl_privatekey:
+    path: /opt/vault/vault-key.pem
+  register: vault_ssl_priv_key
+
+- name: Generate OpenSSL Certificate Signing Request (CSR)
+  community.crypto.openssl_csr:
+    CN: "{{ ansible_hostname }}"
+    subjectAltName: ["DNS:{{ ansible_hostname }}",
+                     "DNS:{{ ansible_hostname }}.lxd",
+                     "DNS:localhost",
+                     "IP:127.0.0.1"
+    ]
+    path: /opt/vault/vault-cert.csr
+    privatekey_path: "{{ vault_ssl_priv_key.filename }}"
+  register: vault_ssl_csr
+
+- name: Generate OpenSSL Certificate
+  community.crypto.x509_certificate:
+    path: /opt/vault/vault-cert.pem
+    privatekey_path: "{{ vault_ssl_priv_key.filename }}"
+    csr_path: "{{ vault_ssl_csr.filename }}"
+    provider: selfsigned

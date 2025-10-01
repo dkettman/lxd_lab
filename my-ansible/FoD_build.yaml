@@ -1,0 +1,23 @@
+---
+- name: Just the facts, ma'am...
+  hosts: all
+  remote_user: root
+  gather_facts: true
+
+  tasks:
+    - name: Get LXD Config User variables
+      ansible.builtin.script:
+        cmd: get_config.sh
+      register: lxd_config_user
+      when: ansible_virtualization_type == 'lxc'
+
+    - name: Set Facts
+      ansible.builtin.set_fact:
+        lxd_user_var: "{{ lxd_config_user.stdout }}"
+        cacheable: true
+      when: ansible_virtualization_type == 'lxc'
+
+    - name: Install HashiCorp Vault on Vault containers
+      ansible.builtin.include_role:
+        name: hashi_vault
+      when: (lxd_user_var.app is defined) and (lxd_user_var.app | lower == 'vault') | default('UNDEFINED')

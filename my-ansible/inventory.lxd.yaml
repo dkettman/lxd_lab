@@ -1,0 +1,8 @@
+---
+plugin: community.general.lxd
+url: unix:/var/snap/lxd/common/lxd/unix.socket
+state: RUNNING
+groupby: 
+  vault:
+    type: profile
+    attribute: profile_vault

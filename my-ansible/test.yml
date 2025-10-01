@@ -1,0 +1,27 @@
+---
+- name: Just the facts, ma'am...
+  hosts: all
+  remote_user: root
+  gather_facts: true
+
+  tasks:
+    - name: Get LXD Config User variables
+      ansible.builtin.script:
+        cmd: get_config.sh
+      register: lxd_config_user
+      when: ansible_virtualization_type == 'lxc'
+
+    - name: Write out User variables
+      ansible.builtin.debug:
+        msg: "{{ lxd_config_user.stdout | from_json }}"
+      when: ansible_virtualization_type == 'lxc'
+
+    - name: Set Facts
+      ansible.builtin.set_fact:
+        lxd_user_var: "{{ lxd_config_user.stdout }}"
+      when: ansible_virtualization_type == 'lxc'
+
+    - name: Checking my work...
+      ansible.builtin.debug:
+        msg: "{{ lxd_user_var.owner |default('UNDEFINED')}}"
+      when: ansible_virtualization_type == 'lxc'

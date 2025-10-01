@@ -1,0 +1,58 @@
+---
+# playbook.yml
+- name: 'Provision Image'
+  hosts: packer
+  remote_user: root
+  become: false
+
+  tasks:
+    - name: Gather some required facts for installation
+      ansible.builtin.command: dpkg --print-architecture
+      register: dpkg_arch
+      changed_when: false
+
+    - name: Install a couple packages from APT repositories if not installed
+      ansible.builtin.apt:
+        pkg:
+          - gpg
+          - vim
+          - less
+          - python3-pylxd
+          - jq
+        update_cache: true
+    # tasks file for hashi_vault
+
+    - name: Check if HashiCorp GPG Key is already downloaded
+      ansible.builtin.file:
+        path: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+        state: file
+      register: hcp_gpg_key_file
+      ignore_errors: true
+
+    - name: Check if gpg file already exists
+      ansible.builtin.file:
+        path: /tmp/hashi-apt-gpg
+        state: file
+      ignore_errors: true
+      register: hcp_gpg_tmp_file
+
+    - name: Get the HashiCorp GPG Key
+      ansible.builtin.get_url:
+        url: https://apt.releases.hashicorp.com/gpg
+        dest: /tmp/hashi-apt-gpg
+        mode: '0440'
+      register: hcp_gpg_file
+      when: (hcp_gpg_key_file is failed) and (hcp_gpg_tmp_file is failed)
+
+    - name: Import HashiCorp GPG Key
+      ansible.builtin.command:
+        cmd: gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg {{ hcp_gpg_tmp_file.path }}
+        creates: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+
+    - name: Add HashiCorp APT Repository
+      ansible.builtin.apt_repository:
+        repo: >
+          deb [arch={{ dpkg_arch.stdout }} signed-by={{ hcp_gpg_key_file.path }}]
+          https://apt.releases.hashicorp.com
+          {{ ansible_facts.lsb.codename }} main
+        state: present
