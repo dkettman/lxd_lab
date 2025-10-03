@@ -11,12 +11,19 @@
     state: directory
     mode: "0644"
 
-# This will need to be turned into a template or something eventually...
-- name: Configure first server
+# This will need to be turned into a bunch of variables or something eventually...
+- name: Configure vault servers
   ansible.builtin.template:
     src: vault-server.hcl.j2
     dest: /opt/vault/vault-server.hcl
     mode: "0640"
+
+- name: Add VAULT_ADDR and VAULT_SKIP_VERIFY to ~/.profile
+  ansible.builtin.blockinfile:
+    path: /root/.profile
+    block: |
+      export VAULT_ADDR=https://127.0.0.1:8200
+      export VAULT_SKIP_VERIFY=true
 
 - name: Generate OpenSSL Private Key
   community.crypto.openssl_privatekey:

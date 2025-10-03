@@ -1,11 +1,11 @@
 terraform {
   required_providers {
-    incus = {
-      source  = "lxc/incus"
-      version = "0.5.1"
+    lxd = {
+      source = "terraform-lxd/lxd"
+      version = "2.5.0"
     }
     ansible = {
-      source = "ansible/ansible"
+      source  = "ansible/ansible"
       version = "1.3.0"
     }
   }
@@ -15,7 +15,7 @@ provider "ansible" {
   # Configuration options
 }
 
-provider "incus" {
+provider "lxd" {
   # Configuration options
 }
 
@@ -25,19 +25,19 @@ variable "cnt_vault" {
   default     = 3
 }
 
-data "incus_network" "incusbr0" {
-  name = "incusbr0"
+data "lxd_network" "lxdbr0" {
+  name = "lxdbr0"
 }
 
-data "incus_storage_pool" "default" {
+data "lxd_storage_pool" "default" {
   name = "default"
 }
 
-data "incus_profile" "profile01" {
+data "lxd_profile" "profile01" {
   name = "profile01"
 }
 
-# resource "incus_profile" "profile01" {
+# resource "lxd_profile" "profile01" {
 #   name = "profile01"
 # 
 #   config = {
@@ -49,7 +49,7 @@ data "incus_profile" "profile01" {
 #     type = "disk"
 #     name = "root"
 #     properties = {
-#       pool = data.incus_storage_pool.default.name
+#       pool = data.lxd_storage_pool.default.name
 #       path = "/"
 #     }
 #   }
@@ -58,23 +58,23 @@ data "incus_profile" "profile01" {
 #     name = "eth0"
 #     type = "nic"
 #     properties = {
-#       network = data.incus_network.incusbr0.name
+#       network = data.lxd_network.lxdbr0.name
 #     }
 # 
 #   }
 # 
 # }
 
-resource "incus_profile" "profile_vault" {
+resource "lxd_profile" "profile_vault" {
   name = "profile_vault"
   config = {
     "user.app" = "Vault"
   }
 }
 
-resource "incus_instance" "vaults" {
+resource "lxd_instance" "vaults" {
   count    = var.cnt_vault
   name     = format("vault%02d", count.index + 1)
-  profiles = [data.incus_profile.profile01.name, incus_profile.profile_vault.name]
-  image    = "ubuntu-noble-cloud-hashi"
+  profiles = [data.lxd_profile.profile01.name, lxd_profile.profile_vault.name]
+  image    = "ubuntu-minimal-noble-hashi"
 }
