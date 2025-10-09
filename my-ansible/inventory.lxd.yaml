@@ -1,7 +1,7 @@
 ---
 plugin: community.general.lxd
   #url: unix:/var/snap/lxd/common/lxd/unix.socket
-lxd_server: https://192.168.69.1:8443
+lxd_server: https://10.226.189.1:8443
 server_check_hostname: false
 trust_password: trustme
 state: RUNNING
