@@ -15,7 +15,7 @@ source "lxd" "lxd-ubuntu-minimal-noble" {
   image        = "ubuntu-minimal:noble"
   output_image = "ubuntu-minimal-noble-hashi-${formatdate("YYYYMMDDhhmmss", timestamp())}"
   # output_image = "ubuntu-minimal-noble-hashi"
-  profile = "profile01"
+  profile = "default"
   publish_properties = {
     description = "Ubuntu-Minimal Noble - HashiCorp"
   }
@@ -30,7 +30,7 @@ build {
   provisioner "ansible" {
     user                    = "root"
     ansible_env_vars        = ["ANSIBLE_HOST_KEY_CHECKING=false", "ANSIBLE_USER=root"]
-    ssh_authorized_key_file = "/home/ubuntu/.ssh/authorized_keys"
+    ssh_authorized_key_file = "/home/dkettman/.ssh/authorized_keys"
     playbook_file           = "./playbook.yml"
     inventory_file          = "./inventory.lxd.yaml"
   }

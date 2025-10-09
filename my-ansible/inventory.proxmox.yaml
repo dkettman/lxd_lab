@@ -1,0 +1,8 @@
+---
+plugin: community.proxmox.proxmox
+url: http://192.168.122.250:8006
+user: ansible@pve
+token_id: ansible@pve!ansible
+token_secret: af806852-9170-467e-b40e-abb55e71d7d6
+want_facts: true
+validate_certs: false
